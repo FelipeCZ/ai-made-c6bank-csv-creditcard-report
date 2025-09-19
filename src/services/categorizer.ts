@@ -11,7 +11,7 @@ export class Categorizer {
     },
     {
       name: 'Supermercados',
-      regex: 'supermercado|mercado|padaria|açougue|hortifruti|extra|carrefour|pao de acucar',
+      regex: 'supermercado|mercado|padaria|açougue|hortifruti|extra|carrefour|pao de acucar|COMERCIALVILLA',
       color: '#22c55e',
       enabled: true
     },
