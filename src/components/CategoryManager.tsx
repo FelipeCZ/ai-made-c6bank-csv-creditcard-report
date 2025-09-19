@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CategoryRule } from '@/types/Category';
+import { CategoryRule } from '../types/Category';
 import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
 
 interface CategoryManagerProps {
