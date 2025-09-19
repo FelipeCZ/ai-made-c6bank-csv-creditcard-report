@@ -1,15 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { Transaction } from '@/types/Transaction';
-import { Search, Calendar, CreditCard, DollarSign } from 'lucide-react';
+import { Transaction } from '../types/Transaction';
+import { Search, Calendar, CreditCard, DollarSign, Trash2 } from 'lucide-react';
+import { Categorizer } from '../services/categorizer';
 
 interface TransactionListProps {
   transactions: Transaction[];
   onUpdateTransaction: (transaction: Transaction) => void;
+  onDeleteTransaction: (transactionId: string) => void;
 }
 
 export const TransactionList: React.FC<TransactionListProps> = ({ 
   transactions, 
-  onUpdateTransaction 
+  onUpdateTransaction,
+  onDeleteTransaction 
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -18,6 +21,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({
     const cats = new Set(transactions.map(t => t.categoriaCustom || 'Outros'));
     return Array.from(cats).sort();
   }, [transactions]);
+
+  const availableCategories = useMemo(() => {
+    const defaultCategories = Categorizer.getDefaultRules().map(rule => rule.name);
+    const allCategories = new Set([...defaultCategories, 'Outros']);
+    return Array.from(allCategories).sort();
+  }, []);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(transaction => {
@@ -106,6 +115,9 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                     <span>Valor</span>
                   </div>
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -126,9 +138,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCategoryColor(transaction.categoriaCustom || 'Outros')}`}>
-                      {transaction.categoriaCustom || 'Outros'}
-                    </span>
+                    <select
+                      value={transaction.categoriaCustom || 'Outros'}
+                      onChange={(e) => onUpdateTransaction({
+                        ...transaction,
+                        categoriaCustom: e.target.value
+                      })}
+                      className={`text-xs font-semibold rounded-full border-0 px-2 py-1 focus:ring-2 focus:ring-blue-500 ${getCategoryColor(transaction.categoriaCustom || 'Outros')}`}
+                    >
+                      {availableCategories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="font-medium">{formatCurrency(transaction.valorBRL)}</div>
@@ -137,6 +158,21 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         ${transaction.valorUSD.toFixed(2)} USD
                       </div>
                     )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Tem certeza que deseja excluir esta transação?')) {
+                            onDeleteTransaction(transaction.id);
+                          }
+                        }}
+                        className="p-1 text-red-400 hover:text-red-600"
+                        title="Excluir transação"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -77,6 +77,12 @@ function App() {
     await Database.saveTransactions(updatedTransactions);
   };
 
+  const handleDeleteTransaction = async (transactionId: string) => {
+    const updatedTransactions = transactions.filter(t => t.id !== transactionId);
+    setTransactions(updatedTransactions);
+    await Database.saveTransactions(updatedTransactions);
+  };
+
   const handleExportData = async (): Promise<string> => {
     return await Database.exportData();
   };
@@ -169,6 +175,7 @@ function App() {
                   <TransactionList 
                     transactions={transactions} 
                     onUpdateTransaction={handleUpdateTransaction}
+                    onDeleteTransaction={handleDeleteTransaction}
                   />
                 </>
               )}
