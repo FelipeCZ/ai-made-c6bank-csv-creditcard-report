@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CategoryRule } from '../types/Category';
-import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Download, Upload } from 'lucide-react';
+import { Database } from '../services/database';
 
 interface CategoryManagerProps {
   rules: CategoryRule[];
@@ -16,6 +17,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ rules, onUpdat
     color: '#3b82f6',
     enabled: true
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveRule = () => {
     if (editingRule) {
@@ -51,17 +53,74 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ rules, onUpdat
     onUpdateRules(updatedRules);
   };
 
+  const handleExportCategories = async () => {
+    try {
+      const data = await Database.exportCategoryRules();
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `c6bank-categories-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Erro ao exportar categorias: ' + (error as Error).message);
+    }
+  };
+
+  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = e.target?.result as string;
+        const importedRules = await Database.importCategoryRules(data);
+        onUpdateRules(importedRules);
+        alert('Categorias importadas com sucesso! Todas as transações foram reclassificadas.');
+      } catch (error) {
+        alert('Erro ao importar categorias: ' + (error as Error).message);
+      }
+    };
+    reader.readAsText(file);
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium text-gray-900">Regras de Categorização</h3>
-        <button
-          onClick={() => setIsCreating(true)}
-          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Nova Regra
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={handleExportCategories}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <Download className="h-4 w-4 mr-1" />
+            Exportar
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <Upload className="h-4 w-4 mr-1" />
+            Importar
+          </button>
+          <button
+            onClick={() => setIsCreating(true)}
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Nova Regra
+          </button>
+        </div>
       </div>
 
       {isCreating && (
@@ -233,6 +292,14 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ rules, onUpdat
           </div>
         ))}
       </div>
+      
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleImportFile}
+        className="hidden"
+      />
     </div>
   );
 };
