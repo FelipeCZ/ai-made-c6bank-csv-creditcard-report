@@ -61,6 +61,43 @@ export class Database {
     }
   }
 
+  static async exportCategoryRules(): Promise<string> {
+    const rules = await this.getCategoryRules();
+    
+    const exportData = {
+      rules,
+      exportDate: new Date().toISOString(),
+      version: '1.0',
+      type: 'categories'
+    };
+    
+    return JSON.stringify(exportData, null, 2);
+  }
+
+  static async importCategoryRules(jsonData: string): Promise<CategoryRule[]> {
+    try {
+      const data = JSON.parse(jsonData);
+      
+      if (!data.rules || !Array.isArray(data.rules)) {
+        throw new Error('Invalid category file format: missing rules array');
+      }
+      
+      for (const rule of data.rules) {
+        if (!rule.id || !rule.name || !rule.regex || typeof rule.enabled !== 'boolean') {
+          throw new Error('Invalid category rule format: missing required fields');
+        }
+      }
+      
+      await this.saveCategoryRules(data.rules);
+      return data.rules;
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new Error('Invalid JSON format');
+      }
+      throw error;
+    }
+  }
+
   static async clearAllData(): Promise<void> {
     await this.transactionsStore.clear();
     await this.rulesStore.clear();
