@@ -3,6 +3,10 @@ import { Transaction } from '../types/Transaction';
 import { CategoryStats } from '../types/Category';
 import { TrendingUp, CreditCard, Calendar, DollarSign } from 'lucide-react';
 
+const isPaymentTransaction = (transaction: Transaction): boolean => {
+  return transaction.descricao.toLowerCase().includes('inclusao de pagamento');
+};
+
 interface DashboardProps {
   transactions: Transaction[];
 }
@@ -31,14 +35,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions }) => {
   };
 
   const stats = useMemo(() => {
-    const totalTransactions = transactions.length;
-    const totalAmount = transactions.reduce((sum, t) => sum + t.valorBRL, 0);
+    const totalTransactions = transactions.filter(t => !isPaymentTransaction(t)).length;
+    const totalAmount = transactions.filter(t => !isPaymentTransaction(t)).reduce((sum, t) => sum + t.valorBRL, 0);
     const avgAmount = totalAmount / totalTransactions || 0;
     
     const categoryStats: CategoryStats[] = [];
     const categoryMap = new Map<string, { count: number; total: number }>();
     
-    transactions.forEach(transaction => {
+    transactions.filter(t => !isPaymentTransaction(t)).forEach(transaction => {
       const category = transaction.categoriaCustom || 'Outros';
       const current = categoryMap.get(category) || { count: 0, total: 0 };
       categoryMap.set(category, {
@@ -59,7 +63,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions }) => {
     categoryStats.sort((a, b) => b.totalBRL - a.totalBRL);
     
     const monthlyData = new Map<string, number>();
-    transactions.forEach(transaction => {
+    transactions.filter(t => !isPaymentTransaction(t)).forEach(transaction => {
       const date = transaction.dataCompra;
       const month = date.substring(3); // MM/YYYY
       const current = monthlyData.get(month) || 0;
