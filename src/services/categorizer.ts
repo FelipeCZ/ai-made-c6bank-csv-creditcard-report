@@ -5,13 +5,13 @@ export class Categorizer {
   private static defaultRules: Omit<CategoryRule, 'id'>[] = [
     {
       name: 'Restaurantes',
-      regex: 'restaurante|lanchonete|bar|pizzaria|hamburger|comida|food|delivery',
+      regex: 'restaurante|lanchonete|bar|pizzaria|hamburger|comida|food|delivery|DELI JOY|GIOVANIFIGUEIREOA|DIVINO FOGAO|LANCHES|PARMEGGIO|FAMILIA GAUCHA|KIKAPRICHO|CAP QUIERO COMERCIO DE|CASADEBOLOS|IFD*|CANDINHA|NESCAFE|FRANGO ASSADO',
       color: '#ef4444',
       enabled: true
     },
     {
       name: 'Supermercados',
-      regex: 'supermercado|mercado|padaria|açougue|hortifruti|extra|carrefour|pao de acucar|COMERCIALVILLA',
+      regex: 'supermercado|mercado|padaria|açougue|hortifruti|extra|carrefour|pao de acucar|COMERCIALVILLA|OBA|ATACADISTA|ALIMENTOS|VAREJIS',
       color: '#22c55e',
       enabled: true
     },
@@ -22,8 +22,8 @@ export class Categorizer {
       enabled: true
     },
     {
-      name: 'Farmácias',
-      regex: 'farmacia|drogaria|droga|medicamento|pharmacy',
+      name: 'Farmácias & Medicos',
+      regex: 'farmacia|drogaria|droga|medicamento|pharmacy|raia|DRA NATALIA',
       color: '#06b6d4',
       enabled: true
     },
@@ -35,7 +35,7 @@ export class Categorizer {
     },
     {
       name: 'Shopping',
-      regex: 'shopping|loja|magazine|americanas|submarino|mercado livre|amazon',
+      regex: 'shopping|loja|magazine|americanas|submarino|mercado livre|amazon|SHOP UTILIDADE|CONSORCIO REMO FENUT|CEA|DI GASPI',
       color: '#ec4899',
       enabled: true
     },
@@ -49,6 +49,30 @@ export class Categorizer {
       name: 'Bancos/Financeiro',
       regex: 'banco|financeira|emprestimo|cartao|anuidade|tarifa|saque',
       color: '#dc2626',
+      enabled: true
+    },
+    {
+      name: 'Milka',
+      regex: 'LOVEFORPETS',
+      color: '#3b82f6',
+      enabled: true
+    },
+    {
+      name: 'Entretenimento',
+      regex: 'CINEPOLIS',
+      color: '#3b82f6',
+      enabled: true
+    },
+    {
+      name: 'Brincadeiras FaFa',
+      regex: 'PARQUE PINTADINHA',
+      color: '#3b82f6',
+      enabled: true
+    },
+    {
+      name: 'Pagamento',
+      regex: 'Inclusao de Pagamento',
+      color: '#3b82f6',
       enabled: true
     }
   ];

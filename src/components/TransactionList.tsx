@@ -50,11 +50,15 @@ export const TransactionList: React.FC<TransactionListProps> = ({
       'Restaurantes': 'bg-red-100 text-red-800',
       'Supermercados': 'bg-green-100 text-green-800',
       'Postos de Combustível': 'bg-yellow-100 text-yellow-800',
-      'Farmácias': 'bg-cyan-100 text-cyan-800',
+      'Farmácias & Medicos': 'bg-cyan-100 text-cyan-800',
       'Transporte': 'bg-purple-100 text-purple-800',
       'Shopping': 'bg-pink-100 text-pink-800',
       'Streaming/Assinaturas': 'bg-gray-100 text-gray-800',
       'Bancos/Financeiro': 'bg-red-100 text-red-800',
+      'Milka': 'bg-blue-100 text-blue-800',
+      'Entretenimento': 'bg-blue-100 text-blue-800',
+      'Brincadeiras FaFa': 'bg-blue-100 text-blue-800',
+      'Pagamento': 'bg-blue-100 text-blue-800',
       'Outros': 'bg-gray-100 text-gray-600'
     };
     return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-600';
