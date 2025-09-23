@@ -17,11 +17,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ transactions }) => {
       'Restaurantes': '#ef4444',
       'Supermercados': '#22c55e',
       'Postos de Combustível': '#f59e0b',
-      'Farmácias': '#06b6d4',
+      'Farmácias & Medicos': '#06b6d4',
       'Transporte': '#8b5cf6',
       'Shopping': '#ec4899',
       'Streaming/Assinaturas': '#64748b',
       'Bancos/Financeiro': '#dc2626',
+      'Milka': '#3b82f6',
+      'Entretenimento': '#3b82f6',
+      'Brincadeiras FaFa': '#3b82f6',
+      'Pagamento': '#3b82f6',
       'Outros': '#6b7280'
     };
     return colors[category as keyof typeof colors] || '#6b7280';
