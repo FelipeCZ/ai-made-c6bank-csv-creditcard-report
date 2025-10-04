@@ -42,14 +42,26 @@ function App() {
     }
   };
 
+  const getTransactionKey = (t: Transaction): string => {
+    return `${t.dataCompra}|${t.descricao}|${t.valorBRL}|${t.nomeCartao}|${t.finalCartao}|${t.parcela}`;
+  };
+
   const handleFileSelect = async (file: File) => {
     setIsLoading(true);
     try {
       const parsedTransactions = await XLSXParser.parseFile(file);
       const categorizedTransactions = Categorizer.categorizeTransactions(parsedTransactions, categoryRules);
       
-      setTransactions(categorizedTransactions);
-      await Database.saveTransactions(categorizedTransactions);
+      const existingTransactions = await Database.getTransactions();
+      const existingKeys = new Set(existingTransactions.map(getTransactionKey));
+      
+      const newTransactions = categorizedTransactions.filter(
+        t => !existingKeys.has(getTransactionKey(t))
+      );
+      
+      const allTransactions = [...existingTransactions, ...newTransactions];
+      setTransactions(allTransactions);
+      await Database.saveTransactions(allTransactions);
     } catch (error) {
       console.error('Error processing file:', error);
       alert('Erro ao processar arquivo: ' + (error as Error).message);
