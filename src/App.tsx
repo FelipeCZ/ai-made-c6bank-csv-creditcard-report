@@ -4,7 +4,8 @@ import { TransactionList } from './components/TransactionList';
 import { CategoryManager } from './components/CategoryManager';
 import { DataManager } from './components/DataManager';
 import { Dashboard } from './components/Dashboard';
-import { XLSXParser } from './services/xlsxParser';
+import { PasswordModal } from './components/PasswordModal';
+import { XLSXParser, PasswordRequiredError } from './services/xlsxParser';
 import { Categorizer } from './services/categorizer';
 import { Database } from './services/database';
 import { Transaction } from './types/Transaction';
@@ -16,6 +17,15 @@ function App() {
   const [categoryRules, setCategoryRules] = useState<CategoryRule[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'categories' | 'data'>('dashboard');
+  const [passwordModalState, setPasswordModalState] = useState<{
+    isOpen: boolean;
+    file: File | null;
+    fileName: string;
+  }>({
+    isOpen: false,
+    file: null,
+    fileName: '',
+  });
 
   useEffect(() => {
     loadData();
@@ -46,10 +56,9 @@ function App() {
     return `${t.dataCompra}|${t.descricao}|${t.valorBRL}|${t.nomeCartao}|${t.finalCartao}|${t.parcela}`;
   };
 
-  const handleFileSelect = async (file: File) => {
-    setIsLoading(true);
+  const processFile = async (file: File, password?: string) => {
     try {
-      const parsedTransactions = await XLSXParser.parseFile(file);
+      const parsedTransactions = await XLSXParser.parseFile(file, password);
       const categorizedTransactions = Categorizer.categorizeTransactions(parsedTransactions, categoryRules);
       
       const existingTransactions = await Database.getTransactions();
@@ -62,12 +71,54 @@ function App() {
       const allTransactions = [...existingTransactions, ...newTransactions];
       setTransactions(allTransactions);
       await Database.saveTransactions(allTransactions);
+      
+      setPasswordModalState({ isOpen: false, file: null, fileName: '' });
     } catch (error) {
-      console.error('Error processing file:', error);
-      alert('Erro ao processar arquivo: ' + (error as Error).message);
+      if (error instanceof PasswordRequiredError) {
+        setPasswordModalState({
+          isOpen: true,
+          file: file,
+          fileName: file.name,
+        });
+      } else {
+        console.error('Error processing file:', error);
+        alert('Erro ao processar arquivo: ' + (error as Error).message);
+        setPasswordModalState({ isOpen: false, file: null, fileName: '' });
+      }
+      throw error;
+    }
+  };
+
+  const handleFileSelect = async (file: File) => {
+    setIsLoading(true);
+    try {
+      await processFile(file);
+    } catch (error) {
+      if (!(error instanceof PasswordRequiredError)) {
+        console.error('Error processing file:', error);
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePasswordSubmit = async (password: string) => {
+    if (!passwordModalState.file) return;
+    
+    setIsLoading(true);
+    try {
+      await processFile(passwordModalState.file, password);
+    } catch (error) {
+      if (error instanceof PasswordRequiredError) {
+        alert('Senha incorreta. Por favor, tente novamente.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordCancel = () => {
+    setPasswordModalState({ isOpen: false, file: null, fileName: '' });
   };
 
   const handleUpdateRules = async (rules: CategoryRule[]) => {
@@ -121,6 +172,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {passwordModalState.isOpen && (
+        <PasswordModal
+          fileName={passwordModalState.fileName}
+          onSubmit={handlePasswordSubmit}
+          onCancel={handlePasswordCancel}
+        />
+      )}
+      
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">

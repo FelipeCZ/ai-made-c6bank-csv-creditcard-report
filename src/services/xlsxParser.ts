@@ -1,15 +1,28 @@
 import * as XLSX from 'xlsx';
 import { Transaction } from '../types/Transaction';
 
+export class PasswordRequiredError extends Error {
+  constructor(message: string = 'File is password protected') {
+    super(message);
+    this.name = 'PasswordRequiredError';
+  }
+}
+
 export class XLSXParser {
-  static parseFile(file: File): Promise<Transaction[]> {
+  static parseFile(file: File, password?: string): Promise<Transaction[]> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
       reader.onload = (e) => {
         try {
           const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
+          const options: XLSX.ParsingOptions = { type: 'binary' };
+          
+          if (password) {
+            options.password = password;
+          }
+          
+          const workbook = XLSX.read(data, options);
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           
@@ -40,7 +53,12 @@ export class XLSXParser {
           
           resolve(transactions);
         } catch (error) {
-          reject(error);
+          const errorMessage = (error as Error).message || '';
+          if (errorMessage.includes('password') || errorMessage.includes('encrypted') || errorMessage.includes('Unsupported')) {
+            reject(new PasswordRequiredError(errorMessage));
+          } else {
+            reject(error);
+          }
         }
       };
       
